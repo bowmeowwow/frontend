@@ -2,11 +2,13 @@ import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-d
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
 import DashboardLayout from './layouts/DashboardLayout'
+import ChatbotPage from './pages/ChatbotPage'
+import ClinicFinder from './pages/ClinicFinder'
 import ComingSoon from './pages/ComingSoon'
 import HomeDashboard from './components/HomeDashboard'
 import Login from './pages/Login'
+import MyPage from './pages/MyPage'
 import Signup from './pages/Signup'
-import PetsPage from './pages/PetsPage'
 
 function App() {
   return (
@@ -24,10 +26,10 @@ function App() {
             }
           >
             <Route path="/home" element={<HomeDashboard />} />
-            <Route path="/clinic" element={<ComingSoon title="Clinic Finder" />} />
-            <Route path="/chat" element={<ComingSoon title="AI Chatbot" />} />
+            <Route path="/clinic" element={<ClinicFinder />} />
+            <Route path="/chat" element={<ChatbotPage />} />
             <Route path="/news" element={<ComingSoon title="Pet News" />} />
-            <Route path="/mypet" element={<PetsPage />} />
+            <Route path="/mypet" element={<MyPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/home" replace />} />

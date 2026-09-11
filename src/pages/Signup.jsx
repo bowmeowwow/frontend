@@ -2,28 +2,57 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { SPECIES_OPTIONS } from '../mock/petProfileHelpers'
+import { addMockPet, readMockProfile, writeMockProfile } from '../mock/petProfileStore'
+
+const EMPTY_PET = { name: '', species: 'DOG', breed: '', birthDate: '', weight: '' }
 
 function Signup() {
   const { signup } = useAuth()
   const navigate = useNavigate()
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [step, setStep] = useState(1)
+  const [account, setAccount] = useState({ name: '', email: '', password: '', phone: '' })
+  const [pet, setPet] = useState(EMPTY_PET)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const handleNext = (event) => {
+    event.preventDefault()
+    if (!account.name || !account.email || !account.password) {
+      setError('이름, 이메일, 비밀번호를 입력해 주세요.')
+      return
+    }
+    setError('')
+    setStep(2)
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!name || !email || !password) {
-      setError('모든 항목을 입력해 주세요.')
+    if (!pet.name || !pet.breed || !pet.birthDate || !pet.weight) {
+      setError('반려동물 정보를 모두 입력해 주세요.')
       return
     }
 
     setError('')
     setSubmitting(true)
     try {
-      await signup({ name, email, password })
+      await signup({ name: account.name, email: account.email, password: account.password })
+
+      // phone + pet detail fields aren't in the real API yet — stash them
+      // locally so MyPage can preview the intended profile/insurance UX.
+      const profile = readMockProfile()
+      writeMockProfile({ ...profile, phone: account.phone })
+      addMockPet({
+        id: crypto.randomUUID(),
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        birthDate: pet.birthDate,
+        weight: Number(pet.weight),
+        healthStatus: 'HEALTHY',
+      })
+
       navigate('/home', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '회원가입에 실패했습니다.')
@@ -33,78 +62,149 @@ function Signup() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <span className="text-3xl">🐾</span>
           <h1 className="mt-2 text-xl font-semibold text-slate-900">
             Bow-Meow-Wow
           </h1>
-          <p className="mt-1 text-sm text-slate-400">회원가입</p>
+          <p className="mt-1 text-sm text-slate-400">
+            {step === 1 ? '회원 정보' : '반려동물 정보'}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="name"
-              className="mb-1 block text-xs font-medium text-slate-500"
-            >
-              이름
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Kim Soyeon"
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-400"
-            />
-          </div>
+        <div className="mb-6 flex items-center gap-2">
+          <div className={`h-1.5 flex-1 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-slate-100'}`} />
+          <div className={`h-1.5 flex-1 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-100'}`} />
+        </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-1 block text-xs font-medium text-slate-500"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-400"
-            />
-          </div>
+        {step === 1 && (
+          <form onSubmit={handleNext} className="space-y-4">
+            <Field label="이름">
+              <input
+                type="text"
+                value={account.name}
+                onChange={(event) => setAccount((prev) => ({ ...prev, name: event.target.value }))}
+                placeholder="Kim Soyeon"
+                className="input"
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                type="email"
+                value={account.email}
+                onChange={(event) => setAccount((prev) => ({ ...prev, email: event.target.value }))}
+                placeholder="you@example.com"
+                className="input"
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                type="password"
+                value={account.password}
+                onChange={(event) => setAccount((prev) => ({ ...prev, password: event.target.value }))}
+                placeholder="••••••••"
+                className="input"
+              />
+            </Field>
+            <Field label="전화번호">
+              <input
+                type="tel"
+                value={account.phone}
+                onChange={(event) => setAccount((prev) => ({ ...prev, phone: event.target.value }))}
+                placeholder="010-1234-5678"
+                className="input"
+              />
+            </Field>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-xs font-medium text-slate-500"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-400"
-            />
-          </div>
+            {error && <p className="text-xs text-red-500">{error}</p>}
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+            <button type="submit" className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700">
+              다음
+            </button>
+          </form>
+        )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {submitting ? 'Creating account...' : 'Sign up'}
-          </button>
-        </form>
+        {step === 2 && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Field label="반려동물 이름">
+              <input
+                type="text"
+                value={pet.name}
+                onChange={(event) => setPet((prev) => ({ ...prev, name: event.target.value }))}
+                placeholder="Coco"
+                className="input"
+              />
+            </Field>
+
+            <div className="flex gap-3">
+              <Field label="종" className="w-28">
+                <select
+                  value={pet.species}
+                  onChange={(event) => setPet((prev) => ({ ...prev, species: event.target.value }))}
+                  className="input"
+                >
+                  {SPECIES_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="품종" className="flex-1">
+                <input
+                  type="text"
+                  value={pet.breed}
+                  onChange={(event) => setPet((prev) => ({ ...prev, breed: event.target.value }))}
+                  placeholder="Shih Tzu"
+                  className="input"
+                />
+              </Field>
+            </div>
+
+            <div className="flex gap-3">
+              <Field label="생년월일" className="flex-1">
+                <input
+                  type="date"
+                  value={pet.birthDate}
+                  onChange={(event) => setPet((prev) => ({ ...prev, birthDate: event.target.value }))}
+                  className="input"
+                />
+              </Field>
+              <Field label="몸무게 (kg)" className="w-28">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={pet.weight}
+                  onChange={(event) => setPet((prev) => ({ ...prev, weight: event.target.value }))}
+                  placeholder="4.2"
+                  className="input"
+                />
+              </Field>
+            </div>
+
+            {error && <p className="text-xs text-red-500">{error}</p>}
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50"
+              >
+                이전
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+              >
+                {submitting ? 'Creating account...' : 'Sign up'}
+              </button>
+            </div>
+          </form>
+        )}
 
         <p className="mt-6 text-center text-sm text-slate-400">
           이미 계정이 있으신가요?{' '}
@@ -113,6 +213,15 @@ function Signup() {
           </Link>
         </p>
       </div>
+    </div>
+  )
+}
+
+function Field({ label, className = '', children }) {
+  return (
+    <div className={className}>
+      <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
+      {children}
     </div>
   )
 }
