@@ -1,85 +1,55 @@
-import { useEffect, useState } from 'react'
-import { getClinicPrices, listClinics } from '../api/clinics'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { listClinics } from '../api/clinics'
 import ClinicMap from '../components/ClinicMap'
+import { clinicCategoryLabel } from '../constants/clinicCategories'
 
-function ClinicPrices({ clinicId }) {
-  const [prices, setPrices] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    setError('')
-    getClinicPrices(clinicId)
-      .then((data) => {
-        if (!cancelled) setPrices(data)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message || '가격 정보를 불러오지 못했습니다.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [clinicId])
-
-  if (loading) return <p className="text-xs text-slate-400">불러오는 중...</p>
-  if (error) return <p className="text-xs text-red-500">{error}</p>
-  if (prices.length === 0) return <p className="text-xs text-slate-400">등록된 가격 정보가 없습니다.</p>
-
+function ClinicInfoCard({ clinic, onClose }) {
   return (
-    <ul className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
-      {prices.map((item) => (
-        <li key={item.procedure} className="flex items-center justify-between text-xs">
-          <span className="text-slate-500">{item.procedure}</span>
-          <span className="font-medium text-slate-700">₩{item.price.toLocaleString('ko-KR')}</span>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function ClinicCard({ clinic }) {
-  const [expanded, setExpanded] = useState(false)
-
-  return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+    <div className="absolute bottom-4 left-4 right-4 z-10 mx-auto max-w-sm rounded-2xl border border-slate-200 bg-white p-4 shadow-lg sm:left-4 sm:right-auto">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-900">{clinic.name}</p>
+          {clinic.category && (
+            <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+              {clinicCategoryLabel(clinic.category)}
+            </span>
+          )}
           <p className="mt-1 text-xs text-slate-400">{clinic.address}</p>
-          <p className="text-xs text-slate-400">{clinic.phone}</p>
+          {clinic.phone && <p className="text-xs text-slate-400">{clinic.phone}</p>}
         </div>
-        <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">
-          {clinic.district}
-        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => setExpanded((prev) => !prev)}
-        className="mt-3 text-xs font-medium text-emerald-600 hover:underline"
-      >
-        {expanded ? '가격표 닫기' : '가격표 보기'}
-      </button>
-      {expanded && <ClinicPrices clinicId={clinic.id} />}
     </div>
   )
 }
 
 function ClinicFinder() {
-  const [district, setDistrict] = useState('')
+  const routerLocation = useLocation()
+  const [query, setQuery] = useState('')
   const [clinics, setClinics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [focusName, setFocusName] = useState(routerLocation.state?.focusName || null)
+  const [focusPosition, setFocusPosition] = useState(
+    routerLocation.state?.focusLat != null && routerLocation.state?.focusLng != null
+      ? { lat: routerLocation.state.focusLat, lng: routerLocation.state.focusLng }
+      : null,
+  )
+  const [selectedClinic, setSelectedClinic] = useState(null)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError('')
-    listClinics(district || undefined)
+    listClinics()
       .then((data) => {
         if (!cancelled) setClinics(data)
       })
@@ -92,33 +62,62 @@ function ClinicFinder() {
     return () => {
       cancelled = true
     }
-  }, [district])
+  }, [])
+
+  const filteredClinics = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return clinics
+    return clinics.filter((clinic) => {
+      const categoryLabel = clinicCategoryLabel(clinic.category).toLowerCase()
+      return (
+        clinic.name.toLowerCase().includes(q) ||
+        clinic.address.toLowerCase().includes(q) ||
+        clinic.district.toLowerCase().includes(q) ||
+        categoryLabel.includes(q) ||
+        clinic.category.toLowerCase().includes(q)
+      )
+    })
+  }, [clinics, query])
 
   return (
-    <div className="space-y-6 p-8">
-      <p className="text-xs text-slate-400">※ 병원 이름/전화번호는 예시 데이터입니다.</p>
-
-      <input
-        type="text"
-        value={district}
-        onChange={(event) => setDistrict(event.target.value)}
-        placeholder="지역으로 검색 (예: 강남구)"
-        className="input max-w-xs"
+    <div className="relative h-full">
+      <ClinicMap
+        clinics={filteredClinics}
+        focusName={focusName}
+        focusPosition={focusPosition}
+        onSelect={(clinic) => {
+          setSelectedClinic(clinic)
+          setFocusName(null)
+          setFocusPosition(null)
+        }}
       />
 
-      {loading && <p className="text-sm text-slate-400">불러오는 중...</p>}
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {!loading && clinics.length === 0 && (
-        <p className="text-sm text-slate-400">조건에 맞는 병원이 없습니다.</p>
-      )}
-
-      {!loading && clinics.length > 0 && <ClinicMap clinics={clinics} />}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {clinics.map((clinic) => (
-          <ClinicCard key={clinic.id} clinic={clinic} />
-        ))}
+      <div className="absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="카테고리(동물병원/호텔/미용) 또는 매장 이름·지역으로 검색"
+          className="input max-w-md flex-1 bg-white shadow-sm"
+        />
+        {loading && (
+          <span className="rounded-xl bg-white px-3 py-2 text-xs text-slate-400 shadow-sm">
+            불러오는 중...
+          </span>
+        )}
+        {error && (
+          <span className="rounded-xl bg-white px-3 py-2 text-xs text-red-500 shadow-sm">{error}</span>
+        )}
+        {!loading && !error && query && (
+          <span className="rounded-xl bg-white px-3 py-2 text-xs text-slate-400 shadow-sm">
+            {filteredClinics.length}곳
+          </span>
+        )}
       </div>
+
+      {selectedClinic && (
+        <ClinicInfoCard clinic={selectedClinic} onClose={() => setSelectedClinic(null)} />
+      )}
     </div>
   )
 }

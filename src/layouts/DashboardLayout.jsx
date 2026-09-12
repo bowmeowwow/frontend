@@ -4,7 +4,7 @@ import Topbar from '../components/Topbar'
 
 const ROUTE_TITLES = {
   '/home': 'Home',
-  '/clinic': 'Clinic Finder',
+  '/clinic': 'Map',
   '/chat': 'AI Chatbot',
   '/news': 'Pet News',
   '/mypet': 'My & Pet',

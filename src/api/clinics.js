@@ -1,10 +1,9 @@
 import { apiFetch } from './client'
 
-export function listClinics(district) {
-  const query = district ? `?district=${encodeURIComponent(district)}` : ''
+export function listClinics({ district, category } = {}) {
+  const params = new URLSearchParams()
+  if (district) params.set('district', district)
+  if (category) params.set('category', category)
+  const query = params.toString() ? `?${params.toString()}` : ''
   return apiFetch(`/clinics${query}`, { auth: false })
-}
-
-export function getClinicPrices(clinicId) {
-  return apiFetch(`/clinics/${clinicId}/prices`, { auth: false })
 }

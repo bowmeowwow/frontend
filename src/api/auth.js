@@ -8,10 +8,10 @@ export function login({ email, password }) {
   })
 }
 
-export function signup({ email, password, name }) {
+export function signup({ email, password, name, phone }) {
   return apiFetch('/auth/signup', {
     method: 'POST',
-    body: { email, password, name },
+    body: { email, password, name, phone: phone || null },
     auth: false,
   })
 }

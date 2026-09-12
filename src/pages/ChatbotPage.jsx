@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { sendChatMessage } from '../api/chat'
+import NearbyRecommendations from '../components/NearbyRecommendations'
 import { usePets } from '../hooks/usePets'
+
+const OPENING_MESSAGE = '안녕하세요! 어떤 반려동물에 대해 상담하고 싶으신가요? 이름을 알려주세요 🐾'
 
 function ChatbotPage() {
   const { pets } = usePets()
-  const [petId, setPetId] = useState('')
+  const [petId, setPetId] = useState(null)
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState([{ role: 'assistant', text: OPENING_MESSAGE }])
   const [sending, setSending] = useState(false)
 
   const handleSubmit = async (event) => {
@@ -14,13 +17,19 @@ function ChatbotPage() {
     const text = input.trim()
     if (!text || sending) return
 
+    // if the user mentions a registered pet's name, silently pick up its
+    // id so the backend can enrich its context — no dropdown needed
+    const mentionedPet = pets.find((pet) => text.includes(pet.name))
+    const nextPetId = mentionedPet ? mentionedPet.id : petId
+
     const userMessage = { role: 'user', text }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setSending(true)
+    setPetId(nextPetId)
 
     try {
-      const data = await sendChatMessage({ message: text, petId: petId ? Number(petId) : null })
+      const data = await sendChatMessage({ message: text, petId: nextPetId })
       setMessages((prev) => [...prev, { role: 'assistant', text: data.reply }])
     } catch (err) {
       setMessages((prev) => [
@@ -33,25 +42,10 @@ function ChatbotPage() {
   }
 
   return (
-    <div className="flex h-full flex-col p-8">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="text-sm text-slate-500">상담 대상 반려동물</span>
-        <select value={petId} onChange={(event) => setPetId(event.target.value)} className="input max-w-[200px]">
-          <option value="">선택 안 함</option>
-          {pets.map((pet) => (
-            <option key={pet.id} value={pet.id}>
-              {pet.name}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="flex h-full flex-col gap-4 p-8">
+      <NearbyRecommendations />
 
-      <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white p-5 shadow-sm">
-        {messages.length === 0 && (
-          <p className="text-sm text-slate-400">
-            반려동물의 건강, 증상, 보험에 대해 무엇이든 물어보세요.
-          </p>
-        )}
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white p-5 shadow-sm">
         {messages.map((message, index) => (
           <div
             key={index}
@@ -69,7 +63,7 @@ function ChatbotPage() {
         {sending && <div className="max-w-[80%] rounded-2xl bg-slate-50 px-4 py-2.5 text-sm text-slate-400">...</div>}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={input}

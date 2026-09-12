@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { createPet } from '../api/pets'
+import { PET_CATEGORIES } from '../constants/petCategories'
 import { useAuth } from '../context/AuthContext'
-import { SPECIES_OPTIONS } from '../mock/petProfileHelpers'
-import { addMockPet, readMockProfile, writeMockProfile } from '../mock/petProfileStore'
+import { calculateAge } from '../utils/calculateAge'
 
-const EMPTY_PET = { name: '', species: 'DOG', breed: '', birthDate: '', weight: '' }
+const EMPTY_PET = { name: '', category: 'DOG', birthDate: '', weight: '' }
 
 function Signup() {
   const { signup } = useAuth()
@@ -29,7 +30,7 @@ function Signup() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!pet.name || !pet.breed || !pet.birthDate || !pet.weight) {
+    if (!pet.name || !pet.birthDate || !pet.weight) {
       setError('반려동물 정보를 모두 입력해 주세요.')
       return
     }
@@ -37,20 +38,19 @@ function Signup() {
     setError('')
     setSubmitting(true)
     try {
-      await signup({ name: account.name, email: account.email, password: account.password })
+      await signup({
+        name: account.name,
+        email: account.email,
+        password: account.password,
+        phone: account.phone,
+      })
 
-      // phone + pet detail fields aren't in the real API yet — stash them
-      // locally so MyPage can preview the intended profile/insurance UX.
-      const profile = readMockProfile()
-      writeMockProfile({ ...profile, phone: account.phone })
-      addMockPet({
-        id: crypto.randomUUID(),
+      await createPet({
         name: pet.name,
-        species: pet.species,
-        breed: pet.breed,
+        category: pet.category,
+        age: calculateAge(pet.birthDate) ?? 0,
         birthDate: pet.birthDate,
-        weight: Number(pet.weight),
-        healthStatus: 'HEALTHY',
+        weight: pet.weight,
       })
 
       navigate('/home', { replace: true })
@@ -141,29 +141,17 @@ function Signup() {
             <div className="flex gap-3">
               <Field label="종" className="w-28">
                 <select
-                  value={pet.species}
-                  onChange={(event) => setPet((prev) => ({ ...prev, species: event.target.value }))}
+                  value={pet.category}
+                  onChange={(event) => setPet((prev) => ({ ...prev, category: event.target.value }))}
                   className="input"
                 >
-                  {SPECIES_OPTIONS.map((item) => (
+                  {PET_CATEGORIES.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>
                   ))}
                 </select>
               </Field>
-              <Field label="품종" className="flex-1">
-                <input
-                  type="text"
-                  value={pet.breed}
-                  onChange={(event) => setPet((prev) => ({ ...prev, breed: event.target.value }))}
-                  placeholder="Shih Tzu"
-                  className="input"
-                />
-              </Field>
-            </div>
-
-            <div className="flex gap-3">
               <Field label="생년월일" className="flex-1">
                 <input
                   type="date"
@@ -172,18 +160,19 @@ function Signup() {
                   className="input"
                 />
               </Field>
-              <Field label="몸무게 (kg)" className="w-28">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={pet.weight}
-                  onChange={(event) => setPet((prev) => ({ ...prev, weight: event.target.value }))}
-                  placeholder="4.2"
-                  className="input"
-                />
-              </Field>
             </div>
+
+            <Field label="몸무게 (kg)">
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={pet.weight}
+                onChange={(event) => setPet((prev) => ({ ...prev, weight: event.target.value }))}
+                placeholder="4.2"
+                className="input"
+              />
+            </Field>
 
             {error && <p className="text-xs text-red-500">{error}</p>}
 

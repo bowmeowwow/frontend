@@ -9,7 +9,7 @@ function loadKakaoMapsSdk() {
   loadPromise = new Promise((resolve, reject) => {
     const appkey = import.meta.env.VITE_KAKAO_JS_KEY
     const script = document.createElement('script')
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appkey}&libraries=services&autoload=false`
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appkey}&libraries=services,clusterer&autoload=false`
     script.onerror = () => reject(new Error('카카오맵 SDK 로드에 실패했습니다.'))
     script.onload = () => window.kakao.maps.load(() => resolve(window.kakao))
     document.head.appendChild(script)

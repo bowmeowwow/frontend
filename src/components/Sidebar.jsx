@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 const NAV_ITEMS = [
   { path: '/home', label: 'Home', icon: '🏠' },
-  { path: '/clinic', label: 'Clinic Finder', icon: '📍' },
+  { path: '/clinic', label: 'Map', icon: '📍' },
   { path: '/chat', label: 'AI Chatbot', icon: '🤖' },
   { path: '/news', label: 'Pet News', icon: '📰' },
   { path: '/mypet', label: 'My & Pet', icon: '🐾' },
@@ -37,14 +37,9 @@ function Sidebar() {
       <div className="flex items-center gap-2 px-6 py-6">
         <span className="text-2xl">🐾</span>
         {!collapsed && (
-          <div className="overflow-hidden">
-            <h1 className="truncate text-lg font-semibold text-slate-900">
-              Bow-Meow-Wow
-            </h1>
-            <p className="truncate text-xs text-slate-400">
-              Pet Healthcare Platform
-            </p>
-          </div>
+          <h1 className="truncate text-lg font-semibold text-slate-900">
+            Bow-Meow-Wow
+          </h1>
         )}
       </div>
 
@@ -84,7 +79,6 @@ function Sidebar() {
               <p className="truncate text-sm font-medium text-slate-800">
                 {user?.name || 'Guest'}
               </p>
-              <p className="truncate text-xs text-slate-400">Premium Plan</p>
             </div>
           )}
           <button

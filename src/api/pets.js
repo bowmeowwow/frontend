@@ -4,10 +4,16 @@ export function listPets() {
   return apiFetch('/pets')
 }
 
-export function createPet({ name, category, age }) {
+export function createPet({ name, category, age, birthDate, weight }) {
   return apiFetch('/pets', {
     method: 'POST',
-    body: { name, category, age },
+    body: {
+      name,
+      category,
+      age,
+      birthDate: birthDate || null,
+      weight: weight != null && weight !== '' ? Number(weight) : null,
+    },
   })
 }
 

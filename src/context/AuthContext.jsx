@@ -28,8 +28,8 @@ export function AuthProvider({ children }) {
     setUser(data.user)
   }
 
-  const signup = async ({ email, password, name }) => {
-    const data = await authApi.signup({ email, password, name })
+  const signup = async ({ email, password, name, phone }) => {
+    const data = await authApi.signup({ email, password, name, phone })
     setToken(data.accessToken)
     setUser(data.user)
   }

@@ -4,10 +4,10 @@ import { AuthProvider } from './context/AuthContext'
 import DashboardLayout from './layouts/DashboardLayout'
 import ChatbotPage from './pages/ChatbotPage'
 import ClinicFinder from './pages/ClinicFinder'
-import ComingSoon from './pages/ComingSoon'
 import HomeDashboard from './components/HomeDashboard'
 import Login from './pages/Login'
 import MyPage from './pages/MyPage'
+import PetNewsPage from './pages/PetNewsPage'
 import Signup from './pages/Signup'
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
             <Route path="/home" element={<HomeDashboard />} />
             <Route path="/clinic" element={<ClinicFinder />} />
             <Route path="/chat" element={<ChatbotPage />} />
-            <Route path="/news" element={<ComingSoon title="Pet News" />} />
+            <Route path="/news" element={<PetNewsPage />} />
             <Route path="/mypet" element={<MyPage />} />
           </Route>
 

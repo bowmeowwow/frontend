@@ -3,17 +3,11 @@ import { useKakaoMaps } from '../hooks/useKakaoMaps'
 
 const SEOUL_CENTER = { lat: 37.5665, lng: 126.978 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
-}
-
-function ClinicMap({ clinics }) {
+function ClinicMap({ clinics, focusName, focusPosition, onSelect }) {
   const { kakao, error } = useKakaoMaps()
   const containerRef = useRef(null)
   const mapRef = useRef(null)
-  const markersRef = useRef([])
+  const clustererRef = useRef(null)
 
   useEffect(() => {
     if (!kakao || !containerRef.current || mapRef.current) return
@@ -21,45 +15,76 @@ function ClinicMap({ clinics }) {
       center: new kakao.maps.LatLng(SEOUL_CENTER.lat, SEOUL_CENTER.lng),
       level: 6,
     })
+    // hundreds of clinics can be loaded at once (all of Seoul) — cluster
+    // them so the map stays smooth instead of rendering every marker
+    clustererRef.current = new kakao.maps.MarkerClusterer({
+      map: mapRef.current,
+      averageCenter: true,
+      minLevel: 6,
+    })
   }, [kakao])
 
+  // place markers straight from the API's lat/lng — no client-side
+  // geocoding needed since the backend geocodes clinic addresses itself
   useEffect(() => {
-    if (!kakao || !mapRef.current) return
+    if (!kakao || !mapRef.current || !clustererRef.current) return
 
-    markersRef.current.forEach((marker) => marker.setMap(null))
-    markersRef.current = []
+    clustererRef.current.clear()
 
-    if (clinics.length === 0) return
+    const located = clinics.filter((clinic) => clinic.latitude != null && clinic.longitude != null)
+    if (located.length === 0) return
 
-    const geocoder = new kakao.maps.services.Geocoder()
     const bounds = new kakao.maps.LatLngBounds()
-    let pending = clinics.length
-
-    clinics.forEach((clinic) => {
-      geocoder.addressSearch(clinic.address, (result, status) => {
-        pending -= 1
-        if (status === kakao.maps.services.Status.OK && result[0]) {
-          const position = new kakao.maps.LatLng(result[0].y, result[0].x)
-          const marker = new kakao.maps.Marker({ map: mapRef.current, position })
-          const infoWindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:6px 10px;font-size:12px;">${escapeHtml(clinic.name)}</div>`,
-          })
-          kakao.maps.event.addListener(marker, 'click', () => infoWindow.open(mapRef.current, marker))
-          markersRef.current.push(marker)
-          bounds.extend(position)
-        }
-        if (pending === 0 && !bounds.isEmpty()) {
-          mapRef.current.setBounds(bounds)
-        }
-      })
+    const markers = located.map((clinic) => {
+      const position = new kakao.maps.LatLng(clinic.latitude, clinic.longitude)
+      const marker = new kakao.maps.Marker({ position })
+      kakao.maps.event.addListener(marker, 'click', () => onSelect?.({ ...clinic, position }))
+      bounds.extend(position)
+      return marker
     })
-  }, [kakao, clinics])
+
+    clustererRef.current.addMarkers(markers)
+    mapRef.current.setBounds(bounds)
+  }, [kakao, clinics, onSelect])
+
+  // pan to a specific schedule/clinic location — prefer an exact clinic
+  // name match (richer info), otherwise fall back to raw coordinates
+  useEffect(() => {
+    if (!kakao || !mapRef.current || !focusName) return
+
+    const match = clinics.find(
+      (clinic) => clinic.name.includes(focusName) || focusName.includes(clinic.name),
+    )
+
+    if (match && match.latitude != null && match.longitude != null) {
+      const position = new kakao.maps.LatLng(match.latitude, match.longitude)
+      mapRef.current.panTo(position)
+      mapRef.current.setLevel(3)
+      onSelect?.({ ...match, position })
+      return
+    }
+
+    if (focusPosition) {
+      const position = new kakao.maps.LatLng(focusPosition.lat, focusPosition.lng)
+      mapRef.current.panTo(position)
+      mapRef.current.setLevel(3)
+      onSelect?.({
+        id: null,
+        name: focusName,
+        address: focusName,
+        phone: '',
+        category: null,
+        position,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kakao, focusName, focusPosition, clinics])
 
   if (error) {
     return <p className="text-xs text-red-500">{error}</p>
   }
 
-  return <div ref={containerRef} className="h-72 w-full rounded-2xl bg-slate-100" />
+  return <div ref={containerRef} className="h-full w-full" />
 }
 
 export default ClinicMap

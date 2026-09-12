@@ -6,3 +6,10 @@ export function sendChatMessage({ message, petId }) {
     body: { message, petId: petId ?? null },
   })
 }
+
+export function recommendPlaces({ latitude, longitude, category, petId }) {
+  return apiFetch('/chat/recommend', {
+    method: 'POST',
+    body: { latitude, longitude, category: category ?? null, petId: petId ?? null },
+  })
+}

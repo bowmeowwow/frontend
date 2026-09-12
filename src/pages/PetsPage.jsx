@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PET_CATEGORIES, petCategoryLabel } from '../constants/petCategories'
 import { usePets } from '../hooks/usePets'
 
-const EMPTY_FORM = { name: '', category: 'DOG', age: '' }
+const EMPTY_FORM = { name: '', category: 'DOG', age: '', birthDate: '', weight: '' }
 
 function AddPetForm({ onAdd }) {
   const [form, setForm] = useState(EMPTY_FORM)
@@ -19,7 +19,13 @@ function AddPetForm({ onAdd }) {
     setError('')
     setSubmitting(true)
     try {
-      await onAdd({ name: form.name, category: form.category, age: Number(form.age) })
+      await onAdd({
+        name: form.name,
+        category: form.category,
+        age: Number(form.age),
+        birthDate: form.birthDate || null,
+        weight: form.weight ? Number(form.weight) : null,
+      })
       setForm(EMPTY_FORM)
     } catch (err) {
       setError(err.message || '반려동물 등록에 실패했습니다.')
@@ -31,7 +37,7 @@ function AddPetForm({ onAdd }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm sm:flex-row sm:items-end"
+      className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-end"
     >
       <div className="flex-1">
         <label className="mb-1 block text-xs font-medium text-slate-500">이름</label>
@@ -71,6 +77,29 @@ function AddPetForm({ onAdd }) {
         />
       </div>
 
+      <div>
+        <label className="mb-1 block text-xs font-medium text-slate-500">생년월일 (선택)</label>
+        <input
+          type="date"
+          value={form.birthDate}
+          onChange={(event) => setForm((prev) => ({ ...prev, birthDate: event.target.value }))}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+        />
+      </div>
+
+      <div className="w-28">
+        <label className="mb-1 block text-xs font-medium text-slate-500">몸무게(kg, 선택)</label>
+        <input
+          type="number"
+          min="0"
+          step="0.1"
+          value={form.weight}
+          onChange={(event) => setForm((prev) => ({ ...prev, weight: event.target.value }))}
+          placeholder="4.2"
+          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+        />
+      </div>
+
       <button
         type="submit"
         disabled={submitting}
@@ -86,7 +115,13 @@ function AddPetForm({ onAdd }) {
 
 function PetCard({ pet, onEdit, onRemove }) {
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: pet.name, category: pet.category, age: pet.age })
+  const [form, setForm] = useState({
+    name: pet.name,
+    category: pet.category,
+    age: pet.age,
+    birthDate: pet.birthDate || '',
+    weight: pet.weight ?? '',
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -94,7 +129,13 @@ function PetCard({ pet, onEdit, onRemove }) {
     setError('')
     setSubmitting(true)
     try {
-      await onEdit(pet.id, { name: form.name, category: form.category, age: Number(form.age) })
+      await onEdit(pet.id, {
+        name: form.name,
+        category: form.category,
+        age: Number(form.age),
+        birthDate: form.birthDate || null,
+        weight: form.weight ? Number(form.weight) : null,
+      })
       setEditing(false)
     } catch (err) {
       setError(err.message || '수정에 실패했습니다.')
@@ -116,7 +157,7 @@ function PetCard({ pet, onEdit, onRemove }) {
   if (editing) {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-white p-4">
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <input
             type="text"
             value={form.name}
@@ -140,6 +181,21 @@ function PetCard({ pet, onEdit, onRemove }) {
             value={form.age}
             onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))}
             className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+          />
+          <input
+            type="date"
+            value={form.birthDate}
+            onChange={(event) => setForm((prev) => ({ ...prev, birthDate: event.target.value }))}
+            className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+          />
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            value={form.weight}
+            onChange={(event) => setForm((prev) => ({ ...prev, weight: event.target.value }))}
+            placeholder="몸무게(kg)"
+            className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-400"
           />
         </div>
         {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
@@ -170,6 +226,7 @@ function PetCard({ pet, onEdit, onRemove }) {
         <p className="text-sm font-medium text-slate-800">{pet.name}</p>
         <p className="text-xs text-slate-400">
           {petCategoryLabel(pet.category)} · {pet.age}살
+          {pet.weight != null && ` · ${pet.weight}kg`}
         </p>
         {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
