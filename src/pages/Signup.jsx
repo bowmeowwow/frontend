@@ -28,13 +28,7 @@ function Signup() {
     setStep(2)
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    if (!pet.name || !pet.birthDate || !pet.weight) {
-      setError('반려동물 정보를 모두 입력해 주세요.')
-      return
-    }
-
+  const finishSignup = async (registerPet) => {
     setError('')
     setSubmitting(true)
     try {
@@ -45,13 +39,15 @@ function Signup() {
         phone: account.phone,
       })
 
-      await createPet({
-        name: pet.name,
-        category: pet.category,
-        age: calculateAge(pet.birthDate) ?? 0,
-        birthDate: pet.birthDate,
-        weight: pet.weight,
-      })
+      if (registerPet) {
+        await createPet({
+          name: pet.name,
+          category: pet.category,
+          age: calculateAge(pet.birthDate) ?? 0,
+          birthDate: pet.birthDate,
+          weight: pet.weight,
+        })
+      }
 
       navigate('/home', { replace: true })
     } catch (err) {
@@ -59,6 +55,20 @@ function Signup() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    if (!pet.name || !pet.birthDate || !pet.weight) {
+      setError('반려동물 정보를 모두 입력해 주세요.')
+      return
+    }
+    finishSignup(true)
+  }
+
+  const handleSkip = () => {
+    setError('')
+    finishSignup(false)
   }
 
   return (
@@ -192,6 +202,14 @@ function Signup() {
                 {submitting ? '계정 생성 중...' : '회원가입'}
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={submitting}
+              className="w-full text-center text-xs font-medium text-slate-400 hover:text-emerald-600 disabled:opacity-60"
+            >
+              나중에 등록할게요 (건너뛰기)
+            </button>
           </form>
         )}
 
