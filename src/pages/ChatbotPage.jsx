@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { sendChatMessage } from '../api/chat'
+import { sendChatCompareMessage, sendChatMessage } from '../api/chat'
 import { createSchedule } from '../api/schedules'
 import { clinicCategoryLabel, scheduleCategoryForClinic } from '../constants/clinicCategories'
 import { usePets } from '../hooks/usePets'
@@ -53,6 +53,21 @@ function ChatPlaceCard({ place, pets }) {
   )
 }
 
+function ChatCompareMessage({ gemini, grok }) {
+  return (
+    <div className="grid w-full max-w-[90%] grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="rounded-2xl bg-blue-50 p-3">
+        <p className="mb-1 text-xs font-semibold text-blue-600">Gemini</p>
+        <p className="whitespace-pre-line text-sm text-slate-700">{gemini}</p>
+      </div>
+      <div className="rounded-2xl bg-purple-50 p-3">
+        <p className="mb-1 text-xs font-semibold text-purple-600">Grok</p>
+        <p className="whitespace-pre-line text-sm text-slate-700">{grok}</p>
+      </div>
+    </div>
+  )
+}
+
 function ChatbotPage() {
   const { pets } = usePets()
   const [petId, setPetId] = useState(null)
@@ -72,8 +87,7 @@ function ChatbotPage() {
     )
   }, [])
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const sendAndAppend = async (sendFn, buildAssistantMessage) => {
     const text = input.trim()
     if (!text || sending) return
 
@@ -88,13 +102,13 @@ function ChatbotPage() {
     setPetId(nextPetId)
 
     try {
-      const data = await sendChatMessage({
+      const data = await sendFn({
         message: text,
         petId: nextPetId,
         latitude: coords?.latitude ?? null,
         longitude: coords?.longitude ?? null,
       })
-      setMessages((prev) => [...prev, { role: 'assistant', text: data.reply, places: data.places }])
+      setMessages((prev) => [...prev, buildAssistantMessage(data)])
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -105,22 +119,40 @@ function ChatbotPage() {
     }
   }
 
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    sendAndAppend(sendChatMessage, (data) => ({ role: 'assistant', text: data.reply, places: data.places }))
+  }
+
+  const handleCompare = () => {
+    sendAndAppend(sendChatCompareMessage, (data) => ({
+      role: 'compare',
+      gemini: data.gemini,
+      grok: data.grok,
+      places: data.places,
+    }))
+  }
+
   return (
     <div className="flex h-full flex-col gap-4 p-8">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white p-5 shadow-sm">
         {messages.map((message, index) => (
           <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex flex-col gap-2'}>
-            <div
-              className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm ${
-                message.role === 'user'
-                  ? 'bg-emerald-600 text-white'
-                  : message.role === 'error'
-                    ? 'bg-red-50 text-red-500'
-                    : 'bg-slate-50 text-slate-700'
-              }`}
-            >
-              {message.text}
-            </div>
+            {message.role === 'compare' ? (
+              <ChatCompareMessage gemini={message.gemini} grok={message.grok} />
+            ) : (
+              <div
+                className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm ${
+                  message.role === 'user'
+                    ? 'bg-emerald-600 text-white'
+                    : message.role === 'error'
+                      ? 'bg-red-50 text-red-500'
+                      : 'bg-slate-50 text-slate-700'
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
             {message.places?.length > 0 && (
               <div className="w-full max-w-[80%] space-y-2">
                 {message.places.map((place) => (
@@ -141,6 +173,14 @@ function ChatbotPage() {
           placeholder="메시지를 입력하세요"
           className="input flex-1"
         />
+        <button
+          type="button"
+          onClick={handleCompare}
+          disabled={sending || !input.trim()}
+          className="rounded-xl border border-purple-200 px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 disabled:opacity-60"
+        >
+          비교
+        </button>
         <button
           type="submit"
           disabled={sending}
