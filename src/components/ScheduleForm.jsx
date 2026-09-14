@@ -33,6 +33,7 @@ function ScheduleForm({ initial, onSubmit, onCancel, pets }) {
       await onSubmit(form)
     } catch (err) {
       setError(err.message || '저장에 실패했습니다.')
+    } finally {
       setSubmitting(false)
     }
   }

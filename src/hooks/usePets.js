@@ -40,5 +40,17 @@ export function usePets() {
     setPets((prev) => prev.filter((item) => item.id !== id))
   }
 
-  return { pets, loading, error, refresh, addPet, editPet, removePet }
+  const uploadPhoto = async (id, file) => {
+    const pet = await petsApi.uploadPetPhoto(id, file)
+    setPets((prev) => prev.map((item) => (item.id === id ? pet : item)))
+    return pet
+  }
+
+  const removePhoto = async (id) => {
+    const pet = await petsApi.deletePetPhoto(id)
+    setPets((prev) => prev.map((item) => (item.id === id ? pet : item)))
+    return pet
+  }
+
+  return { pets, loading, error, refresh, addPet, editPet, removePet, uploadPhoto, removePhoto }
 }

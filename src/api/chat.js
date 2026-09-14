@@ -1,15 +1,13 @@
 import { apiFetch } from './client'
 
-export function sendChatMessage({ message, petId }) {
+export function sendChatMessage({ message, petId, latitude, longitude }) {
   return apiFetch('/chat', {
     method: 'POST',
-    body: { message, petId: petId ?? null },
-  })
-}
-
-export function recommendPlaces({ latitude, longitude, category, petId }) {
-  return apiFetch('/chat/recommend', {
-    method: 'POST',
-    body: { latitude, longitude, category: category ?? null, petId: petId ?? null },
+    body: {
+      message,
+      petId: petId ?? null,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
+    },
   })
 }

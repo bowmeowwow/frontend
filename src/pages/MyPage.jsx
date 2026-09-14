@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import PetAvatar from '../components/PetAvatar'
 import { useAuth } from '../context/AuthContext'
 import { petCategoryLabel } from '../constants/petCategories'
 import { usePets } from '../hooks/usePets'
@@ -31,9 +32,7 @@ function PetCard({ pet }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-4">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-lg">
-          🐾
-        </div>
+        <PetAvatar pet={pet} />
         <div>
           <p className="text-sm font-medium text-slate-800">{pet.name}</p>
           <p className="text-xs text-slate-400">{petCategoryLabel(pet.category)}</p>

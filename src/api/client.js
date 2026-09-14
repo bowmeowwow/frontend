@@ -42,3 +42,33 @@ export async function apiFetch(path, { method = 'GET', body, auth = true } = {})
 
   return data
 }
+
+export async function apiUpload(path, formData, { method = 'PUT' } = {}) {
+  const headers = {}
+  const token = getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(`/api${path}`, { method, headers, body: formData })
+  const data = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new ApiError(data?.message || '요청 처리 중 오류가 발생했습니다.', response.status)
+  }
+
+  return data
+}
+
+export async function apiFetchBlob(path) {
+  const headers = {}
+  const token = getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(`/api${path}`, { headers })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    throw new ApiError(data?.message || '요청 처리 중 오류가 발생했습니다.', response.status)
+  }
+
+  return response.blob()
+}
