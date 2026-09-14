@@ -41,7 +41,7 @@ function Login() {
           <h1 className="mt-2 text-xl font-semibold text-slate-900">
             Bow-Meow-Wow
           </h1>
-          <p className="mt-1 text-sm text-slate-400">Pet Healthcare Platform</p>
+          <p className="mt-1 text-sm text-slate-400">반려동물 헬스케어 플랫폼</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,14 +50,14 @@ function Login() {
               htmlFor="email"
               className="mb-1 block text-xs font-medium text-slate-500"
             >
-              Email
+              이메일
             </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
+              placeholder="이메일을 입력하세요"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-400"
             />
           </div>
@@ -67,7 +67,7 @@ function Login() {
               htmlFor="password"
               className="mb-1 block text-xs font-medium text-slate-500"
             >
-              Password
+              비밀번호
             </label>
             <input
               id="password"
@@ -86,7 +86,7 @@ function Login() {
             disabled={submitting}
             className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            {submitting ? 'Logging in...' : 'Login'}
+            {submitting ? '로그인 중...' : '로그인'}
           </button>
         </form>
 

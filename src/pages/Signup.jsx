@@ -86,20 +86,20 @@ function Signup() {
                 type="text"
                 value={account.name}
                 onChange={(event) => setAccount((prev) => ({ ...prev, name: event.target.value }))}
-                placeholder="Kim Soyeon"
+                placeholder="이름을 입력하세요"
                 className="input"
               />
             </Field>
-            <Field label="Email">
+            <Field label="이메일">
               <input
                 type="email"
                 value={account.email}
                 onChange={(event) => setAccount((prev) => ({ ...prev, email: event.target.value }))}
-                placeholder="you@example.com"
+                placeholder="이메일을 입력하세요"
                 className="input"
               />
             </Field>
-            <Field label="Password">
+            <Field label="비밀번호">
               <input
                 type="password"
                 value={account.password}
@@ -133,7 +133,7 @@ function Signup() {
                 type="text"
                 value={pet.name}
                 onChange={(event) => setPet((prev) => ({ ...prev, name: event.target.value }))}
-                placeholder="Coco"
+                placeholder="반려동물 이름을 입력하세요"
                 className="input"
               />
             </Field>
@@ -189,7 +189,7 @@ function Signup() {
                 disabled={submitting}
                 className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
-                {submitting ? 'Creating account...' : 'Sign up'}
+                {submitting ? '계정 생성 중...' : '회원가입'}
               </button>
             </div>
           </form>

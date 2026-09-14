@@ -62,7 +62,7 @@ function ExpenseForm({ pets, initial, onSubmit, onCancel }) {
         type="text"
         value={form.description}
         onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-        placeholder="지출 내용 (예: 사료 구입)"
+        placeholder="지출 내용"
         className="input"
       />
       <input

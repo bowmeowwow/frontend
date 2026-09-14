@@ -7,7 +7,7 @@ import PetsPage from './PetsPage'
 
 function ProfileHeader() {
   const { user } = useAuth()
-  const initials = (user?.name || 'Guest')
+  const initials = (user?.name || '게스트')
     .split(' ')
     .map((part) => part[0])
     .join('')
@@ -20,7 +20,7 @@ function ProfileHeader() {
         {initials}
       </div>
       <div>
-        <p className="text-base font-semibold text-slate-900">{user?.name || 'Guest'}</p>
+        <p className="text-base font-semibold text-slate-900">{user?.name || '게스트'}</p>
         <p className="text-sm text-slate-400">{user?.email}</p>
         {user?.phone && <p className="text-sm text-slate-400">{user.phone}</p>}
       </div>
@@ -52,13 +52,13 @@ function MyPetsSection({ onManage }) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-900">My Pets</h3>
+        <h3 className="text-sm font-semibold text-slate-900">내 반려동물</h3>
         <button
           type="button"
           onClick={onManage}
           className="rounded-xl border border-dashed border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-emerald-300 hover:text-emerald-600"
         >
-          + Add a pet
+          + 반려동물 추가
         </button>
       </div>
 

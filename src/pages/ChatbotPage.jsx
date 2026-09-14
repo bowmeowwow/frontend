@@ -68,6 +68,7 @@ function ChatbotPage() {
     navigator.geolocation.getCurrentPosition(
       (position) => setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
       () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     )
   }, [])
 
@@ -137,7 +138,7 @@ function ChatbotPage() {
           type="text"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="메시지를 입력하세요 (예: 우리 강아지 주변 병원 추천해줘)"
+          placeholder="메시지를 입력하세요"
           className="input flex-1"
         />
         <button

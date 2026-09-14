@@ -44,7 +44,7 @@ function ScheduleForm({ initial, onSubmit, onCancel, pets }) {
         type="text"
         value={form.title}
         onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-        placeholder="일정 제목 (예: 예방접종)"
+        placeholder="일정 제목"
         className="input"
       />
       <div className="flex gap-2">
@@ -100,7 +100,7 @@ function ScheduleForm({ initial, onSubmit, onCancel, pets }) {
         type="text"
         value={form.location}
         onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
-        placeholder="병원/장소 (예: 행복동물병원) — 선택"
+        placeholder="병원/장소 (선택)"
         className="input"
       />
 
