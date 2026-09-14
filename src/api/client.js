@@ -1,5 +1,10 @@
 const TOKEN_STORAGE_KEY = 'bmw.token'
 
+// Local dev keeps hitting the relative /api path (proxied by Vite to
+// localhost:8000). A production build on Vercel has no such proxy, so it
+// needs the backend's public URL baked in via this env var at build time.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
 export function getToken() {
   return localStorage.getItem(TOKEN_STORAGE_KEY)
 }
@@ -27,7 +32,7 @@ export async function apiFetch(path, { method = 'GET', body, auth = true } = {})
     if (token) headers.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(`${API_BASE}/api${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -48,7 +53,7 @@ export async function apiUpload(path, formData, { method = 'PUT' } = {}) {
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const response = await fetch(`/api${path}`, { method, headers, body: formData })
+  const response = await fetch(`${API_BASE}/api${path}`, { method, headers, body: formData })
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {
@@ -63,7 +68,7 @@ export async function apiFetchBlob(path) {
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const response = await fetch(`/api${path}`, { headers })
+  const response = await fetch(`${API_BASE}/api${path}`, { headers })
 
   if (!response.ok) {
     const data = await response.json().catch(() => null)
