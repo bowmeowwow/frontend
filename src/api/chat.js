@@ -1,6 +1,6 @@
 import { apiFetch } from './client'
 
-export function sendChatMessage({ message, petId, latitude, longitude }) {
+export function sendChatMessage({ message, petId, latitude, longitude, model }) {
   return apiFetch('/chat', {
     method: 'POST',
     body: {
@@ -8,6 +8,7 @@ export function sendChatMessage({ message, petId, latitude, longitude }) {
       petId: petId ?? null,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
+      ...(model ? { model } : {}),
     },
   })
 }
