@@ -158,25 +158,10 @@ function ChatbotPage() {
       return
     }
 
-    if (mode === 'groq') {
-      // TODO: switch to sendChatMessage({ model: 'groq' }) once the backend
-      // ships single-model support — compare already gives a real Groq
-      // answer, so this avoids showing Gemini's reply under the wrong label.
-      sendAndAppend(sendChatCompareMessage, (data) => ({
-        role: 'assistant',
-        model: 'groq',
-        text: data.groq,
-        places: data.places,
-      }))
-      return
-    }
-
-    sendAndAppend(sendChatMessage, (data) => ({
-      role: 'assistant',
-      model: 'gemini',
-      text: data.reply,
-      places: data.places,
-    }))
+    sendAndAppend(
+      (args) => sendChatMessage({ ...args, model: mode }),
+      (data) => ({ role: 'assistant', model: mode, text: data.reply, places: data.places }),
+    )
   }
 
   const handleChangeMode = () => {
