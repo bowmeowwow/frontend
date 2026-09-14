@@ -53,7 +53,7 @@ function ChatPlaceCard({ place, pets }) {
   )
 }
 
-function ChatCompareMessage({ gemini, grok }) {
+function ChatCompareMessage({ gemini, groq }) {
   return (
     <div className="grid w-full max-w-[90%] grid-cols-1 gap-2 sm:grid-cols-2">
       <div className="rounded-2xl bg-blue-50 p-3">
@@ -61,8 +61,8 @@ function ChatCompareMessage({ gemini, grok }) {
         <p className="whitespace-pre-line text-sm text-slate-700">{gemini}</p>
       </div>
       <div className="rounded-2xl bg-purple-50 p-3">
-        <p className="mb-1 text-xs font-semibold text-purple-600">Grok</p>
-        <p className="whitespace-pre-line text-sm text-slate-700">{grok}</p>
+        <p className="mb-1 text-xs font-semibold text-purple-600">Groq</p>
+        <p className="whitespace-pre-line text-sm text-slate-700">{groq}</p>
       </div>
     </div>
   )
@@ -128,7 +128,7 @@ function ChatbotPage() {
     sendAndAppend(sendChatCompareMessage, (data) => ({
       role: 'compare',
       gemini: data.gemini,
-      grok: data.grok,
+      groq: data.groq,
       places: data.places,
     }))
   }
@@ -139,7 +139,7 @@ function ChatbotPage() {
         {messages.map((message, index) => (
           <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex flex-col gap-2'}>
             {message.role === 'compare' ? (
-              <ChatCompareMessage gemini={message.gemini} grok={message.grok} />
+              <ChatCompareMessage gemini={message.gemini} groq={message.groq} />
             ) : (
               <div
                 className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm ${
